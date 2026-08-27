@@ -1,0 +1,153 @@
+import os
+import cv2
+import numpy as np
+import random
+from PIL import Image
+from datasets import load_dataset, Dataset
+from openai import OpenAI
+from tqdm import tqdm
+
+
+# 强制使用国内镜像源，防断连
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
+
+# 这里是阿里云通义千问 API KEY 
+DASHSCOPE_API_KEY = "------------------------" 
+
+NUM_HARD_NEGATIVES = 150  # 源数据集是6w多张，但是由于算力限制，只引入150张完全健康的胸片作为负样本
+
+def apply_clahe_to_image(image):
+    """模块 1：医学图像特征工程 (CLAHE)"""
+    try:
+        img_np = np.array(image.convert("RGB"))
+        img_cv = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+        lab = cv2.cvtColor(img_cv, cv2.COLOR_BGR2LAB)
+        l_channel, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        cl = clahe.apply(l_channel)
+        merged = cv2.merge((cl, a, b))
+        enhanced_cv = cv2.cvtColor(merged, cv2.COLOR_LAB2RGB)
+        return Image.fromarray(enhanced_cv)
+    except Exception:
+        return image
+
+def extract_ground_truth(item): #精准提取真实的诊断报告
+    
+    if "messages" in item:
+        msgs = item["messages"]
+        if isinstance(msgs, list) and len(msgs) > 1:
+            assistant_content = msgs[1]["content"]
+            if isinstance(assistant_content, list):
+                return assistant_content[0].get("text", str(assistant_content))
+            return str(assistant_content)
+    elif "conversations" in item:
+        return item["conversations"][1]["value"]
+    elif "text" in item:
+        return item["text"]
+    return "未找到诊断结果"
+
+def get_knowledge_from_qwen(client, text):  #没有构建知识图谱的数据集，采用增强平替 (LLM 知识蒸馏)
+    
+    if not DASHSCOPE_API_KEY or DASHSCOPE_API_KEY.startswith("sk-xxxx"):
+        return "" # 如果没有配置 Key，则平滑跳过
+    
+    prompt = (
+        "你是一个医学实体抽取专家。请从以下放射科报告中提取出核心的'疾病-影像特征'对应关系，"
+        "并严格按以下格式输出一句话（不要输出任何其他废话）：\n"
+        "【医学先验知识：提示XXX，表现为XXX。】\n"
+        f"报告内容：{text}"
+    )
+    try:
+        response = client.chat.completions.create(
+            model="qwen-turbo", # 速度最快、免费额度最多的模型
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return "" # 遇到网络波动直接跳过，保证流水线不中断
+
+def mine_hard_negatives():
+    
+    print(f"\n[负样本挖掘] 正在从官方源 hf-vision/chest-xray-pneumonia 拉取 {NUM_HARD_NEGATIVES} 张纯健康胸片...")
+    
+    # 替换成了更稳定、更权威的开源医学图像库
+    normal_ds = load_dataset("hf-vision/chest-xray-pneumonia", split="train", streaming=True)
+    
+    neg_images, neg_instructions, neg_texts = [], [], []
+    count = 0
+    
+    for item in normal_ds:
+        # 兼容 datasets 库的键名（有的是 labels，有的是 label）
+        # 0 通常在这个数据集中代表 Normal (正常健康)
+        lbl = item.get("labels", item.get("label", -1))
+        
+        if lbl == 0:
+            neg_images.append(apply_clahe_to_image(item["image"]))
+            # 赋予极其标准的健康人诊断报告
+            neg_texts.append("双肺纹理清晰，未见实质性浸润影或占位性病变，心影大小形态及纵隔结构在正常范围内。双侧胸腔未见积液征象。结论：心肺膈未见明显异常。")
+            neg_instructions.append("你是一名严谨的放射科医生。请观察这张X光片，如有异常请指出；如正常请明确说明。")
+            count += 1
+            if count >= NUM_HARD_NEGATIVES:
+                break
+                
+    print(f"[负样本挖掘] 成功获取 {count} 张高质量健康胸片负样本！")
+    return neg_images, neg_instructions, neg_texts
+
+def main():
+    print("=== 开始执行医学数据工程流水线 (Elite Data Engineering) ===")
+    
+    # 1. 初始化 Qwen 客户端
+    client = OpenAI(
+        api_key=DASHSCOPE_API_KEY,
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+    
+    # 2. 准备基础指令池 (模块 4：指令多样化)
+    instructions_pool = [
+        "你是一名资深的放射科主治医师。请对该影像进行系统性读取，并输出详细诊断。",
+        "请仔细观察这张X光片，指出所有可见的异常病灶。",
+        "请提取这幅医学影像的主要病理特征，并生成连贯的影像学描述。"
+    ]
+    
+    processed_data = {"image": [], "instruction": [], "text": []}
+    
+    # 3. 处理带病灶的主数据集
+    print("\n[主数据处理] 正在拉取原始 Radiology_mini 并进行增强蒸馏...")
+    main_dataset = load_dataset("unsloth/Radiology_mini", split="train")
+    
+    # 限制处理前500条（大模型API调用需要时间）
+    MAX_PROCESS = 500 
+    
+    for idx, item in enumerate(tqdm(main_dataset.select(range(min(MAX_PROCESS, len(main_dataset)))))):
+        gt_report = extract_ground_truth(item)
+        knowledge_context = get_knowledge_from_qwen(client, gt_report)
+        
+        chosen_inst = random.choice(instructions_pool)
+        if knowledge_context:
+            final_inst = f"{knowledge_context}\n{chosen_inst}"
+        else:
+            final_inst = chosen_inst
+            
+        processed_data["image"].append(apply_clahe_to_image(item["image"]))
+        processed_data["instruction"].append(final_inst)
+        processed_data["text"].append(gt_report)
+        
+    # 4. 融合健康负样本
+    neg_imgs, neg_insts, neg_txts = mine_hard_negatives()
+    processed_data["image"].extend(neg_imgs)
+    processed_data["instruction"].extend(neg_insts)
+    processed_data["text"].extend(neg_txts)
+    
+    # 5. 打乱数据并保存
+    print("\n[数据融合] 正在打乱正负样本并持久化...")
+    engineered_dataset = Dataset.from_dict(processed_data)
+    engineered_dataset = engineered_dataset.shuffle(seed=42)
+    
+    os.makedirs("data", exist_ok=True)
+    engineered_dataset.save_to_disk("data/engineered_dataset")
+    print(f"数据工程全流程完结！增强版数据集（共 {len(engineered_dataset)} 条）已保存至: data/engineered_dataset")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,14 @@
+# Python 缓存
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# 训练输出与模型权重
+outputs/
+lora_model/
+merged_model/
+
+# 日志
+logs/
+wandb/
+.env

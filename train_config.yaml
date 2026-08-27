@@ -1,0 +1,25 @@
+# configs/train_config.yaml
+
+model:
+  # 这里是下载的 3B 模型的本地绝对路径，这个模型大小算力能接受
+  name_or_path: "D:/models/Qwen2.5-VL-3B-Instruct-bnb-4bit"
+  load_in_4bit: true
+
+data:
+  # data_engineering.py 输出的本地绝对/相对路径
+  dataset_name: "data/engineered_dataset" 
+  instruction: "你是一名专业的放射科医生。请准确描述你在图片中看到的内容。"
+
+lora:
+  r: 16
+  lora_alpha: 16
+  bias: "none"
+  target_modules: "all-linear"
+
+training:
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  max_steps: 30
+  learning_rate: 0.0002
+  optim: "paged_adamw_8bit" # 这个分页优化器
+  output_dir: "./outputs"
