@@ -25,18 +25,24 @@ LLM 知识蒸馏 (Knowledge Distillation)：调用 Qwen-Turbo API 提取原始�
 
 📂 项目结构
 Plaintext
-📦 MedVLM-Finetune
- ┣ 📂 configs
- ┃ ┗ train_config.yaml           # 模型、数据及超参数配置文件
- ┣ 📂 scripts
- ┃ ┣ data_engineering.py         # 核心数据增强、知识蒸馏与负样本融合脚本
- ┃ ┣ train.py                    # 极限微调训练脚本 (LoRA)
- ┃ ┗ evaluate_quantitative.py    # 自动化评估与指标计算脚本 (BLEU/ROUGE)
- ┣ 📂 src
- ┃ ┣ data_handler.py             # 数据加载与多态指令格式化适配器
- ┃ ┣ model_builder.py            # 视觉模型组装与显存优化层
- ┃ ┗ inference.py                # 单图推理脚本
- ┗  download_model.py             # 断点续传与防断连下载器
+
+
+```
+```
+MedVLM-Finetune
+ ├ configs
+ │ └ train_config.yaml # 模型、数据及超参数配置文件
+ ├ scripts
+ │ ├ data_engineering.py # 核心数据增强、知识蒸馏与负样本融合脚本
+ │ ├ train.py # 极限微调训练脚本 (LoRA)
+ │ └ evaluate_quantitative.py # 自动化评估与指标计算脚本 (BLEU/ROUGE)
+ ├ src
+ │ ├ data_handler.py # 数据加载与多态指令格式化适配器
+ │ ├ model_builder.py # 视觉模型组装与显存优化层
+ │ └ inference.py # 单图推理脚本
+ └ download_model.py # 断点续传与防断连下载器
+```
+```
 
 快速开始
 
@@ -48,7 +54,6 @@ Bash
 # 建议使用 Python 3.10
 
 pip install openai opencv-python datasets rouge-score nltk jieba
-
 
 执行数据工程 (Data Engineering)
 该步骤将自动进行 CLAHE 图像增强、困难负样本融合与大模型知识抽取。
@@ -71,14 +76,12 @@ Bash
 python scripts/evaluate_quantitative.py
 评估报告及明细将导出至 outputs/eval_report.json。
 
-
-
 # 这里是需要的库及其版本
 
+```
+```
 Package            Version
-
-
-
+------------------ ---------
 absl-py            2.5.0
 accelerate         1.14.0
 aiohappyeyeballs   2.7.1
@@ -184,5 +187,6 @@ xformers           0.0.35
 xxhash             4.0.1
 yarl               1.24.5
 zipp               4.1.0
-
 unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git
+```
+```
