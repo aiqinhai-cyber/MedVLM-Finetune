@@ -26,23 +26,22 @@ LLM 知识蒸馏 (Knowledge Distillation)：调用 Qwen-Turbo API 提取原始�
 📂 项目结构
 Plaintext
 
+```
+- 📦 MedVLM-Finetune
+  - 📂 configs
+    - train_config.yaml # 模型、数据及超参数配置文件
+  - 📂 scripts
+    - data_engineering.py # 核心数据增强、知识蒸馏与负样本融合脚本
+    - train.py # 极限微调训练脚本 (LoRA)
+    - evaluate_quantitative.py # 自动化评估与指标计算脚本 (BLEU/ROUGE)
+  - 📂 src
+    - data_handler.py # 数据加载与多态指令格式化适配器
+    - model_builder.py # 视觉模型组装与显存优化层
+    - inference.py # 单图推理脚本
+  - download_model.py # 断点续传与防断连下载器
+```
 
-```
-```
-MedVLM-Finetune
- ├ configs
- │ └ train_config.yaml # 模型、数据及超参数配置文件
- ├ scripts
- │ ├ data_engineering.py # 核心数据增强、知识蒸馏与负样本融合脚本
- │ ├ train.py # 极限微调训练脚本 (LoRA)
- │ └ evaluate_quantitative.py # 自动化评估与指标计算脚本 (BLEU/ROUGE)
- ├ src
- │ ├ data_handler.py # 数据加载与多态指令格式化适配器
- │ ├ model_builder.py # 视觉模型组装与显存优化层
- │ └ inference.py # 单图推理脚本
- └ download_model.py # 断点续传与防断连下载器
-```
-```
+
 
 快速开始
 
@@ -79,114 +78,112 @@ python scripts/evaluate_quantitative.py
 # 这里是需要的库及其版本
 
 ```
-```
-Package            Version
------------------- ---------
-absl-py            2.5.0
-accelerate         1.14.0
-aiohappyeyeballs   2.7.1
-aiohttp            3.14.3
-aiosignal          1.4.0
-annotated-doc      0.0.5
-annotated-types    0.8.0
-anyio              4.14.2
-async-timeout      5.0.1
-attrs              26.1.0
-bitsandbytes       0.50.1
-certifi            2026.7.22
-charset-normalizer 3.5.1
-click              8.4.2
-colorama           0.4.6
-cut-cross-entropy  25.1.1
-datasets           4.3.0
-defusedxml         0.7.1
-diffusers          0.40.0
-dill               0.4.0
-docstring_parser   0.18.0
-exceptiongroup     1.3.1
-filelock           3.32.4
-frozenlist         1.8.0
-fsspec             2025.9.0
-h11                0.16.0
-hf_transfer        0.1.9
-hf-xet             1.6.0
-httpcore           1.0.9
-httpcore2          2.12.0
-httpx              0.28.1
-httpx2             2.12.0
-huggingface_hub    1.28.0
-idna               3.19
-importlib_metadata 9.0.0
-jieba              0.42.1
-Jinja2             3.1.6
-jiter              0.16.0
-joblib             1.5.3
-markdown-it-py     4.2.0
-MarkupSafe         3.0.3
-mdurl              0.1.2
-mpmath             1.3.0
-msgspec            0.21.1
-multidict          6.7.1
-multiprocess       0.70.16
-nest-asyncio       1.6.0
-networkx           3.4.2
-nltk               3.10.3
-numpy              2.2.6
-openai             3.5.0
-opencv-python      5.0.0.93
-opentelemetry-api  1.44.0
-packaging          26.3
-pandas             2.3.3
-peft               0.20.0
-pillow             12.3.0
-pip                26.1.2
-platformdirs       4.11.4
-propcache          0.5.2
-protobuf           7.36.0
-psutil             7.2.2
-pyarrow            25.0.1
-pydantic           2.13.4
-pydantic_core      2.46.4
-Pygments           2.21.0
-python-dateutil    2.9.0.post0
-pytz               2026.3.post1
-PyYAML             6.0.3
-regex              2026.7.19
-requests           2.34.2
-rich               15.0.0
-rouge_score        0.1.2
-safetensors        0.8.0
-sentencepiece      0.2.2
-sentry-sdk         2.68.1
-setuptools         81.0.0
-shellingham        1.5.4
-six                1.17.0
-sniffio            1.3.1
-structlog          26.1.0
-sympy              1.14.0
-tokenizers         0.22.2
-torch              2.12.0.dev20260408+cu128
-torchvision        0.27.0.dev20260407+cu128
-tqdm               4.70.0
-transformers       5.5.0
-triton-windows     3.7.1.post27
-trl                0.24.0
-truststore         0.10.4
-typeguard          4.6.0
-typer              0.27.1
-typing_extensions  4.16.0
-typing-inspection  0.4.4
-tyro               1.0.16
-tzdata             2026.3
-unsloth            2026.8.19
-unsloth_zoo        2026.8.13
-urllib3            2.7.0
-wandb              0.28.2
-wheel              0.47.0
-xformers           0.0.35
-xxhash             4.0.1
-yarl               1.24.5
-zipp               4.1.0
-unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git
-```
+| Package            | Version                              |
+| ------------------ | ------------------------------------ |
+| absl-py            | 2.5.0                                |
+| accelerate         | 1.14.0                               |
+| aiohappyeyeballs   | 2.7.1                                |
+| aiohttp            | 3.14.3                               |
+| aiosignal          | 1.4.0                                |
+| annotated-doc      | 0.0.5                                |
+| annotated-types    | 0.8.0                                |
+| anyio              | 4.14.2                               |
+| async-timeout      | 5.0.1                                |
+| attrs              | 26.1.0                               |
+| bitsandbytes       | 0.50.1                               |
+| certifi            | 2026.7.22                            |
+| charset-normalizer | 3.5.1                                |
+| click              | 8.4.2                                |
+| colorama           | 0.4.6                                |
+| cut-cross-entropy  | 25.1.1                               |
+| datasets           | 4.3.0                                |
+| defusedxml         | 0.7.1                                |
+| diffusers          | 0.40.0                               |
+| dill               | 0.4.0                                |
+| docstring_parser   | 0.18.0                               |
+| exceptiongroup     | 1.3.1                                |
+| filelock           | 3.32.4                               |
+| frozenlist         | 1.8.0                                |
+| fsspec             | 2025.9.0                             |
+| h11                | 0.16.0                               |
+| hf_transfer        | 0.1.9                                |
+| hf-xet             | 1.6.0                                |
+| httpcore           | 1.0.9                                |
+| httpcore2          | 2.12.0                               |
+| httpx              | 0.28.1                               |
+| httpx2             | 2.12.0                               |
+| huggingface_hub    | 1.28.0                               |
+| idna               | 3.19                                 |
+| importlib_metadata | 9.0.0                                |
+| jieba              | 0.42.1                               |
+| Jinja2             | 3.1.6                                |
+| jiter              | 0.16.0                               |
+| joblib             | 1.5.3                                |
+| markdown-it-py     | 4.2.0                                |
+| MarkupSafe         | 3.0.3                                |
+| mdurl              | 0.1.2                                |
+| mpmath             | 1.3.0                                |
+| msgspec            | 0.21.1                               |
+| multidict          | 6.7.1                                |
+| multiprocess       | 0.70.16                              |
+| nest-asyncio       | 1.6.0                                |
+| networkx           | 3.4.2                                |
+| nltk               | 3.10.3                               |
+| numpy              | 2.2.6                                |
+| openai             | 3.5.0                                |
+| opencv-python      | 5.0.0.93                             |
+| opentelemetry-api  | 1.44.0                               |
+| packaging          | 26.3                                 |
+| pandas             | 2.3.3                                |
+| peft               | 0.20.0                               |
+| pillow             | 12.3.0                               |
+| pip                | 26.1.2                               |
+| platformdirs       | 4.11.4                               |
+| propcache          | 0.5.2                                |
+| protobuf           | 7.36.0                               |
+| psutil             | 7.2.2                                |
+| pyarrow            | 25.0.1                               |
+| pydantic           | 2.13.4                               |
+| pydantic_core      | 2.46.4                               |
+| Pygments           | 2.21.0                               |
+| python-dateutil    | 2.9.0.post0                          |
+| pytz               | 2026.3.post1                         |
+| PyYAML             | 6.0.3                                |
+| regex              | 2026.7.19                            |
+| requests           | 2.34.2                               |
+| rich               | 15.0.0                               |
+| rouge_score        | 0.1.2                                |
+| safetensors        | 0.8.0                                |
+| sentencepiece      | 0.2.2                                |
+| sentry-sdk         | 2.68.1                               |
+| setuptools         | 81.0.0                               |
+| shellingham        | 1.5.4                                |
+| six                | 1.17.0                               |
+| sniffio            | 1.3.1                                |
+| structlog          | 26.1.0                               |
+| sympy              | 1.14.0                               |
+| tokenizers         | 0.22.2                               |
+| torch              | 2.12.0.dev20260408+cu128             |
+| torchvision        | 0.27.0.dev20260407+cu128             |
+| tqdm               | 4.70.0                               |
+| transformers      | 5.5.0                                |
+| triton-windows     | 3.7.1.post27                         |
+| trl                | 0.24.0                               |
+| truststore         | 0.10.4                               |
+| typeguard          | 4.6.0                                |
+| typer              | 0.27.1                               |
+| typing_extensions  | 4.16.0                               |
+| typing-inspection  | 0.4.4                                |
+| tyro               | 1.0.16                               |
+| tzdata             | 2026.3                               |
+| unsloth            | 2026.8.19                            |
+| unsloth_zoo        | 2026.8.13                            |
+| urllib3            | 2.7.0                                |
+| wandb              | 0.28.2                               |
+| wheel              | 0.47.0                               |
+| xformers           | 0.0.35                               |
+| xxhash             | 4.0.1                                |
+| yarl               | 1.24.5                               |
+| zipp               | 4.1.0                                |
+| unsloth[colab-new] | @ git+https://github.com/unslothai/unsloth.git |
 ```
