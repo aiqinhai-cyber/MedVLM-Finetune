@@ -14,16 +14,16 @@ os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def compute_metrics(ground_truth, prediction):
-    """计算大模型常用的自然语言生成指标 (中文适用)"""
+    """计算大模型常用的自然语言生成指标 """
     # 使用 jieba 进行中文分词
     gt_tokens = list(jieba.cut(ground_truth))
     pred_tokens = list(jieba.cut(prediction))
     
-    # 1. 计算 BLEU-4 (关注生成的精准度，即模型生成的话在标准答案里命中了多少)
+    # 计算 BLEU-4 (关注生成的精准度，即模型生成的话在标准答案里命中了多少)
     smoothie = SmoothingFunction().method1
     bleu_score = sentence_bleu([gt_tokens], pred_tokens, smoothing_function=smoothie)
     
-    # 2. 计算 ROUGE-L (关注召回率，即最长公共子序列，评估句子结构的完整度)
+    # 计算 ROUGE-L (关注召回率，用最长公共子序列来评估句子结构的完整度)
     # ROUGE 库默认按空格分词，我们把切好的中文词用空格连起来骗过它
     scorer = rouge_scorer.RougeScorer(['rougeL'], use_stemmer=True)
     rouge_res = scorer.score(" ".join(gt_tokens), " ".join(pred_tokens))
@@ -35,16 +35,16 @@ def main():
     try:
         test_dataset = load_from_disk("data/test_dataset")
     except:
-        print("未找到测试集！请先运行最新的 scripts/train.py 生成切分数据。")
+        print("未找到测试集！请先运行最新的 train.py 生成切分数据。")
         return
 
-    print("=== 2. 组装 AI 放射科医生 (Base + LoRA) ===")
+    print("组装 Base + LoRA")
     model, tokenizer = FastVisionModel.from_pretrained(
         "lora_model",
         load_in_4bit=True,
         device_map="auto"
     )
-    # 开启 Unsloth 2倍速推理优化
+    # 开启 Unsloth 倍速推理优化
     FastVisionModel.for_inference(model)
     
     results = []
@@ -52,7 +52,7 @@ def main():
     rouge_list = []
 
     print(f"\n=== 3. 开始自动化量化评估 (共 {len(test_dataset)} 条 X光片) ===")
-    # 为了测试，，这里只跑前 20 条
+    # 为了测试，这里只跑前 20 条
     for idx, example in enumerate(tqdm(test_dataset)):
         # 解析数据结构提取内容
         user_content = example["messages"][0]["content"]
@@ -97,7 +97,7 @@ def main():
             "rouge_l": round(rouge_l, 4)
         })
 
-    # === 4. 输出最终成绩单 ===
+    # 输出最终成绩
     avg_bleu = np.mean(bleu_list)
     avg_rouge = np.mean(rouge_list)
     
@@ -116,7 +116,7 @@ def main():
             "summary": {"BLEU": avg_bleu, "ROUGE_L": avg_rouge},
             "details": results
         }, f, ensure_ascii=False, indent=2)
-    print("💾 详细测试报告已导出至 outputs/eval_report.json")
+    print("详细测试报告已导出至 outputs/eval_report.json")
 
 if __name__ == "__main__":
     main()
