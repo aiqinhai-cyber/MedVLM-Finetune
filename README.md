@@ -27,23 +27,26 @@ LLM 知识蒸馏 (Knowledge Distillation)：调用 Qwen-Turbo API 提取原始�
 Plaintext
 📦 MedVLM-Finetune
  ┣ 📂 configs
- ┃ ┗ 📜 train_config.yaml           # 模型、数据及超参数配置文件
+ ┃ ┗ train_config.yaml           # 模型、数据及超参数配置文件
  ┣ 📂 scripts
- ┃ ┣ 📜 data_engineering.py         # 核心数据增强、知识蒸馏与负样本融合脚本
- ┃ ┣ 📜 train.py                    # 极限微调训练脚本 (LoRA)
- ┃ ┗ 📜 evaluate_quantitative.py    # 自动化评估与指标计算脚本 (BLEU/ROUGE)
+ ┃ ┣ data_engineering.py         # 核心数据增强、知识蒸馏与负样本融合脚本
+ ┃ ┣ train.py                    # 极限微调训练脚本 (LoRA)
+ ┃ ┗ evaluate_quantitative.py    # 自动化评估与指标计算脚本 (BLEU/ROUGE)
  ┣ 📂 src
- ┃ ┣ 📜 data_handler.py             # 数据加载与多态指令格式化适配器
- ┃ ┣ 📜 model_builder.py            # 视觉模型组装与显存优化层
- ┃ ┗ 📜 inference.py                # 单图推理脚本
- ┗ 📜 download_model.py             # 断点续传与防断连下载器
+ ┃ ┣ data_handler.py             # 数据加载与多态指令格式化适配器
+ ┃ ┣ model_builder.py            # 视觉模型组装与显存优化层
+ ┃ ┗ inference.py                # 单图推理脚本
+ ┗  download_model.py             # 断点续传与防断连下载器
 
 快速开始
+
 1. 环境准备
-本项目基于最新的 PyTorch Nightly 构建以支持最新显卡架构。
+   本项目基于最新的 PyTorch Nightly 构建以支持最新显卡架构。
 
 Bash
+
 # 建议使用 Python 3.10
+
 pip install openai opencv-python datasets rouge-score nltk jieba
 2. 执行数据工程 (Data Engineering)
 该步骤将自动进行 CLAHE 图像增强、困难负样本融合与大模型知识抽取。
@@ -53,14 +56,14 @@ python scripts/data_engineering.py
 注：需在脚本中配置自己的 DashScope API Key。生成的数据将存储在 data/engineered_dataset。
 
 3. 启动模型微调 (Fine-tuning)
-调用 src/model_builder.py 动态加载 4-bit 模型并注入 LoRA 适配器。
+   调用 src/model_builder.py 动态加载 4-bit 模型并注入 LoRA 适配器。
 
 Bash
 python scripts/train.py
 微调完成后的外挂权重将安全保存至 lora_model 目录。
 
 4. 量化评估 (Evaluation)
-对预留的独立测试集进行推理，并计算自然语言生成指标。
+   对预留的独立测试集进行推理，并计算自然语言生成指标。
 
 Bash
 python scripts/evaluate_quantitative.py
